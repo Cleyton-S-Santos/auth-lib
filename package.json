@@ -1,5 +1,5 @@
 {
-  "name": "@Cleyton-S-Santos/auth-lib",
+  "name": "@cleyton-s-santos/auth-lib",
   "version": "0.1.0",
   "private": false,
   "type": "module",
@@ -23,8 +23,10 @@
     "url": "git+https://github.com/mfe-deep/auth-lib.git"
   },
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com/"
+    "access": "public"
   },
+  "description": "Biblioteca de autenticação Node/TypeScript com clean architecture",
+  "license": "MIT",
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc --noEmit",

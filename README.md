@@ -14,7 +14,7 @@ Biblioteca de autenticação em Node/TypeScript usando clean architecture. Forne
 ### Montar o AuthService
 
 ```ts
-import { AuthService, RegisterInput } from '@mfe-deep/auth-lib'
+import { AuthService, RegisterInput } from '@cleyton-s-santos/auth-lib'
 
 type User = { id: string; email: string; passwordHash: string }
 
@@ -61,7 +61,7 @@ await auth.logout(token)
 ## Instalação
 
 ```bash
-npm install @mfe-deep/auth-lib
+npm install @cleyton-s-santos/auth-lib
 ```
 
 Requisitos sugeridos para integrações:
@@ -110,7 +110,7 @@ del(key: string): Promise<void>
 ### Montagem padrão
 
 ```ts
-import { AuthService, RegisterInput } from '@mfe-deep/auth-lib'
+import { AuthService, RegisterInput } from '@cleyton-s-santos/auth-lib'
 
 type User = { id: string; email: string; passwordHash: string; name?: string }
 
@@ -150,7 +150,7 @@ const auth = new AuthService<User>({
 ```ts
 // auth.module.ts
 import { Module } from '@nestjs/common'
-import { AuthService as CoreAuthService, RegisterInput } from '@mfe-deep/auth-lib'
+import { AuthService as CoreAuthService, RegisterInput } from '@cleyton-s-santos/auth-lib'
 import { AuthController } from './auth.controller'
 
 type User = { id: string; email: string; passwordHash: string }
@@ -183,7 +183,7 @@ export class AuthModule {}
 ```ts
 // auth.controller.ts
 import { Controller, Post, Body, Get, Req } from '@nestjs/common'
-import { AuthService as CoreAuthService } from '@mfe-deep/auth-lib'
+import { AuthService as CoreAuthService } from '@cleyton-s-santos/auth-lib'
 
 @Controller('auth')
 export class AuthController {
