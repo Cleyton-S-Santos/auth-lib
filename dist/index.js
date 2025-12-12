@@ -1,2 +1,2 @@
-export { AuthService } from "./application/AuthService";
-export { AuthError } from "./domain/errors";
+export { AuthService } from "./application/AuthService.js";
+export { AuthError } from "./domain/errors.js";

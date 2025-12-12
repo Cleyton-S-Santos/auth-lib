@@ -14,7 +14,7 @@ Biblioteca de autenticação em Node/TypeScript usando clean architecture. Forne
 ### Montar o AuthService
 
 ```ts
-import { AuthService, RegisterInput } from '@cleyton-s-santos/auth-lib'
+import { AuthService, RegisterInput } from '@cleytonsousa/auth-lib'
 
 type User = { id: string; email: string; passwordHash: string }
 
@@ -110,7 +110,7 @@ del(key: string): Promise<void>
 ### Montagem padrão
 
 ```ts
-import { AuthService, RegisterInput } from '@cleyton-s-santos/auth-lib'
+import { AuthService, RegisterInput } from '@cleytonsousa/auth-lib'
 
 type User = { id: string; email: string; passwordHash: string; name?: string }
 
@@ -150,7 +150,7 @@ const auth = new AuthService<User>({
 ```ts
 // auth.module.ts
 import { Module } from '@nestjs/common'
-import { AuthService as CoreAuthService, RegisterInput } from '@cleyton-s-santos/auth-lib'
+import { AuthService as CoreAuthService, RegisterInput } from '@cleytonsousa/auth-lib'
 import { AuthController } from './auth.controller'
 
 type User = { id: string; email: string; passwordHash: string }
@@ -183,7 +183,7 @@ export class AuthModule {}
 ```ts
 // auth.controller.ts
 import { Controller, Post, Body, Get, Req } from '@nestjs/common'
-import { AuthService as CoreAuthService } from '@cleyton-s-santos/auth-lib'
+import { AuthService as CoreAuthService } from '@cleytonsousa/auth-lib'
 
 @Controller('auth')
 export class AuthController {
@@ -214,6 +214,79 @@ export class AuthController {
     const token = String(req.headers.authorization?.replace('Bearer ', '') ?? '')
     await this.auth.logout(token)
     return {}
+  }
+}
+```
+
+### Implementações exemplo (NestJS Providers)
+
+```ts
+import type { UserRepository, PasswordHasher, CacheStore, TokenManager, VerifiedToken } from '@cleytonsousa/auth-lib'
+import { createPool } from 'mysql2/promise'
+import { createClient } from 'redis'
+import bcrypt from 'bcryptjs'
+import jwt from 'jsonwebtoken'
+import crypto from 'node:crypto'
+
+type User = { id: string; email: string; passwordHash: string; name?: string }
+
+const pool = createPool({
+  host: process.env.DB_HOST!,
+  user: process.env.DB_USER!,
+  database: process.env.DB_NAME!,
+  password: process.env.DB_PASS!,
+})
+
+export class MySqlUserRepo implements UserRepository<User> {
+  async findByEmail(email: string) {
+    const [rows] = await pool.query('SELECT id,email,password_hash,name FROM users WHERE email=?', [email])
+    const r = (rows as any[])[0]
+    return r ? { id: String(r.id), email: r.email, passwordHash: r.password_hash, name: r.name ?? undefined } : null
+  }
+  async findById(id: string) {
+    const [rows] = await pool.query('SELECT id,email,password_hash,name FROM users WHERE id=?', [id])
+    const r = (rows as any[])[0]
+    return r ? { id: String(r.id), email: r.email, passwordHash: r.password_hash, name: r.name ?? undefined } : null
+  }
+  async create(user: User) {
+    await pool.query('INSERT INTO users (id,email,password_hash,name) VALUES (?,?,?,?)', [user.id, user.email, user.passwordHash, user.name ?? null])
+    return user
+  }
+  async update(user: User) {
+    await pool.query('UPDATE users SET email=?, password_hash=?, name=? WHERE id=?', [user.email, user.passwordHash, user.name ?? null, user.id])
+    return user
+  }
+}
+
+export class RedisCache implements CacheStore {
+  client = createClient({ url: process.env.REDIS_URL })
+  ready = this.client.connect()
+  async get(key: string) { await this.ready; const v = await this.client.get(key); return v ?? null }
+  async set(key: string, value: string, ttlSeconds?: number) {
+    await this.ready
+    if (ttlSeconds && ttlSeconds > 0) await this.client.set(key, value, { EX: ttlSeconds })
+    else await this.client.set(key, value)
+  }
+  async del(key: string) { await this.ready; await this.client.del(key) }
+}
+
+export class BcryptHasher implements PasswordHasher {
+  async hash(plain: string) { return bcrypt.hash(plain, 10) }
+  async compare(plain: string, hashed: string) { return bcrypt.compare(plain, hashed) }
+}
+
+export class JwtManager implements TokenManager {
+  secret = process.env.JWT_SECRET!
+  async issue(claims: { sub: string } & Record<string, unknown>, options?: { expiresInSeconds?: number }) {
+    const expiresIn = options?.expiresInSeconds ? `${options.expiresInSeconds}s` : '15m'
+    return jwt.sign(claims, this.secret, { expiresIn, jwtid: crypto.randomUUID() })
+  }
+  async verify(token: string): Promise<VerifiedToken> {
+    const decoded = jwt.verify(token, this.secret, { complete: true }) as any
+    const payload = decoded.payload as any
+    const exp = payload.exp as number | undefined
+    const jti = payload.jti as string | undefined
+    return { claims: payload, exp, jti }
   }
 }
 ```
