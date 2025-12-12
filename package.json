@@ -1,6 +1,6 @@
 {
   "name": "@cleytonsousa/auth-lib",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "private": false,
   "type": "module",
   "main": "dist/index.js",
@@ -20,7 +20,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mfe-deep/auth-lib.git"
+    "url": "git+https://github.com/Cleyton-S-Santos/auth-lib.git"
   },
   "publishConfig": {
     "access": "public"
