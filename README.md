@@ -1,4 +1,4 @@
-# @mfe-deep/auth-lib
+# @cleytonsousa/auth-lib
 
 Biblioteca de autenticação em Node/TypeScript usando clean architecture. Fornece casos de uso de registro, login, validação de token e logout com blacklist em cache.
 
